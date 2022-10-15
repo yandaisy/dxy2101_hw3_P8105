@@ -1,0 +1,87 @@
+---
+title: "dxy2101_hw3_p8105"
+author: "Daisy Yan"
+date: "10/15/2022"
+output: github_document
+---
+
+```{r setup, message=FALSE}
+library(tidyverse)
+library(ggplot2)
+```
+
+## Problem 2
+
+**Part 1: Load, tidy, and wrangle data.**
+
+```{r tidy, message=FALSE}
+accel_data = 
+  read_csv('~/Desktop/Data Science I/Homeworks/dxy2101_hw3_P8105/accel_data.csv') %>%
+  janitor::clean_names() %>%
+  pivot_longer(
+    activity_1:activity_1440,
+    names_to = "minute",
+    names_prefix = "activity_",
+    values_to = "counts"
+  ) %>%
+  mutate(
+    day_type = ifelse(day == c("Saturday", "Sunday"), "weekend", "weekday"),
+    minute = as.numeric(minute)
+  ) %>%
+  relocate(day_type, .before = minute)
+```
+
+There are `r nrow(accel_data)` observations and `r ncol(accel_data)` variables. The variables in this dataset are the following:
+
+* `week` - week number of accelerometer data collection
+* `day_id` - day number of accelerometer data collection
+* `day` - day of the week
+* `day_type` - weekend vs. weekday
+* `minute` - minute of the day
+* `counts` - activity counts of the corresponding minute of the day
+
+**Part 2: Aggregate across minutes to create a total activity variable for each day.**
+
+```{r aggregate}
+accel_data_total =
+  accel_data %>%
+  group_by(day_id) %>%
+  summarise(total_counts = sum(counts))
+
+# view table
+accel_data_total_tbl =
+  accel_data_total %>%
+  knitr::kable(digits = 1)
+
+accel_data_total_tbl
+```
+
+By only looking at the table, there does not seem to be an apparent trend. 
+
+```{r total_counts plot}
+accel_data_total %>%
+  ggplot(aes(x = day_id, y = total_counts)) +
+  geom_point() + geom_line()
+```
+
+Plotting the total daily activity counts by day also showcases no apparent trend. However, there are noticeable dips in activity on 2, 24, and 31.
+
+**Part 3: Plot the 24-hour activity time courses for each day.**
+
+```{r 24hr plot}
+accel_data %>%
+  mutate(day = forcats::fct_relevel(day, c("Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"))
+         ) %>%
+  ggplot(aes(x = minute, y = counts, color = day)) +
+  geom_point(alpha = 0.5) +
+  labs(
+    title = "24 Hour Activity Time Course",
+    x = "Minute of the Day",
+    y = "Activity Count"
+    ) +
+  scale_x_continuous(
+    breaks = c(1, 720, 1440)
+  )
+```
+
+According to the 24 Hour Activity Time Course plot, it appears that there are generally spikes in activity during the mid-morning, the afternoon, and in the late evening. Activity is especially low during towards the end of the night and early morning, presumably because the individual is asleep during those hours. Afternoon spike in activity is especially apparent on Sundays while the late evening spike in activity is especially apparent on Mondays, Wednesdays, Fridays, and Saturdays. Saturdays also showcase a spike in activity in the late afternoon.
