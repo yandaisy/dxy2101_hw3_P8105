@@ -147,7 +147,7 @@ The most commonly observed value for snowfall is 0 mm. This is because snowfall 
 
 **Part 2: Plot the average max temperature in January and in July in each station across years.**
 
-```{r tmax prep, results='hide'}
+```{r tmax prep, warning=FALSE}
 ny_noaa_tmax =
   ny_noaa_clean %>%
   drop_na() %>%
@@ -181,7 +181,7 @@ The median value for the average maximum temperature is similar between June and
 library(patchwork)
 ```
 
-```{r temp and snow plot}
+```{r temp and snow plot, warning=FALSE}
 tmax_tmin =
   ggplot(data = ny_noaa_clean, aes(x = tmax, y = tmin)) +
   geom_hex() +
